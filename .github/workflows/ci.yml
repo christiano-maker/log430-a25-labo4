@@ -106,6 +106,10 @@ jobs:
           echo "REDIS_DB=0" >> .env
           ls -la .env
 
+      - name: Créer le réseau labo04-network s'il n'existe pas
+        run: docker network inspect labo04-network >/dev/null 2>&1 || docker network create labo04-network
+
+
       - name: Déploiement local
         run: |
           cd $GITHUB_WORKSPACE
