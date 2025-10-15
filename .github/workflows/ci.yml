@@ -30,8 +30,12 @@ jobs:
           echo "REDIS_PORT=6379" >> .env
           echo "REDIS_DB=0" >> .env
 
+      - name: Créer le réseau labo04-network s'il n'existe pas
+        run: docker network inspect labo04-network >/dev/null 2>&1 || docker network create labo04-network
+
+
       - name: Démarrer le conteneur
-        run: docker compose up -d
+        run: docker compose up -d --build
 
       - name: Attendre MySQL
         run: |
@@ -47,6 +51,20 @@ jobs:
             fi
           done
           sleep 5
+
+      - name: Attendre Redis prêt (simple ping)
+        run: |
+          timeout=40
+          until (echo PING | nc -w 2 127.0.0.1 6379 | grep -q PONG); do
+            echo "Waiting for Redis..."
+            sleep 2
+            timeout=$((timeout - 2))
+            if [ $timeout -le 0 ]; then
+              echo "Redis failed to start"
+              docker compose logs redis || true
+              exit 1
+            fi
+          done
 
       - name: Exécuter test_user.py (TODO - inclure tous les tests)
         working-directory: src
@@ -65,7 +83,7 @@ jobs:
 
   deploy:
     runs-on: self-hosted
-    needs: test   # Ne se lance que si les tests passen
+    needs: test   # Ne se lance que si les tests passent
     steps:
       - uses: actions/checkout@v4
 
