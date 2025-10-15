@@ -83,7 +83,7 @@ jobs:
 
   deploy:
     runs-on: self-hosted
-    needs: test   # Ne se lance que si les tests passen
+    needs: test   # Ne se lance que si les tests passent
     steps:
       - uses: actions/checkout@v4
 
